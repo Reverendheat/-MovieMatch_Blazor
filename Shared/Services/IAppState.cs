@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MovieMatch_Blazor.Client.Services
+namespace MovieMatch_Blazor.Shared.Services
 {
     public interface IAppState
     {
-        Room room { get; set; }
-        User user { get; set; }
+        List<string> Users { get; set; }
+        string RoomCode { get; set; }
+        string Username { get; set; }
+        string UserCode { get; set; }
         bool roomIsValid { get; set; }
     }
 }

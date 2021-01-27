@@ -2,7 +2,7 @@
 @using MovieMatch_Blazor.Shared
 @using MovieMatch_Blazor.Shared.FormModels
 @inject MovieMatch_Blazor.Client.Services.IRoomService roomService
-@inject MovieMatch_Blazor.Client.Services.IAppState appState
+@inject MovieMatch_Blazor.Shared.Services.IAppState appState
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 
@@ -51,16 +51,14 @@
 
     public async void HandleNewRoom()
     {
-        appState.user.Username = newRoom.Username;
-        var result = await roomService.CreateRoom(appState.user);
+        appState.Username = newRoom.Username;
+        var result = await roomService.CreateRoom(appState);
         if (result.Success)
         {
-            //Update the state user and room properties
-            appState.user = result.Data.Users.FirstOrDefault();
-            appState.room = new MovieMatch_Blazor.Shared.Room();
-            appState.room = result.Data;
-            appState.roomIsValid = true;
-            navigationManager.NavigateTo($"/room/{result.Data.RoomCode}");
+            //Update the state from the API
+            appState.roomIsValid = result.Data.roomIsValid;
+            appState.RoomCode = result.Data.RoomCode;
+            navigationManager.NavigateTo($"/room/{appState.RoomCode}");
         }
         else
         {
@@ -69,26 +67,19 @@
     }
     public async void HandleJoinRoom()
     {
-        appState.user.Username = joinRoom.Username;
-        appState.room.RoomCode = joinRoom.RoomCode;
+        appState.Username = joinRoom.Username;
+        appState.RoomCode = joinRoom.RoomCode;
         var result = await roomService.JoinRoom(appState);
-        if (result.Success)
-        {
-            appState.room = result.Data;
-            appState.user = result.Data.Users.Where(u => u.UserCode == appState.user.UserCode).FirstOrDefault();
-            appState.roomIsValid = true;
-            navigationManager.NavigateTo($"/room/{result.Data.RoomCode}");
-        }
+        appState.roomIsValid = result.Success;
+        appState.Users = result.Data.Users;
+        appState.roomIsValid = true;
+        navigationManager.NavigateTo($"/room/{result.Data.RoomCode}");
     }
 
     protected async override Task OnInitializedAsync()
     {
         //Create a guid and store it in local storage, as well as in the user object to send to the db
-        appState.user = appState.user ?? new User();
-        appState.room = appState.room ?? new MovieMatch_Blazor.Shared.Room();
-        appState.room.Users = appState.room.Users ?? new List<User>();
-        var userCode = Guid.NewGuid().ToString();
-        await localStorage.SetItemAsync<string>("UserCode", userCode);
-        appState.user.UserCode = userCode;
+        appState.UserCode = Guid.NewGuid().ToString();
+        await localStorage.SetItemAsync<string>("UserCode", appState.UserCode);
     }
 }

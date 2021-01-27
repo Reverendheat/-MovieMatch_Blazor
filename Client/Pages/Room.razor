@@ -1,5 +1,5 @@
 ﻿@page "/room/{RoomCode}"
-@inject MovieMatch_Blazor.Client.Services.IAppState appState
+@inject MovieMatch_Blazor.Shared.Services.IAppState appState
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 @using Microsoft.AspNetCore.SignalR.Client 
@@ -7,14 +7,15 @@
 
 @if (appState.roomIsValid)
 {
-    <h3>Welcome!</h3>
+    <h3>Lets get ready to rumble @appState.Username</h3>
     <div>
-        <ol id="currentUsers">
-            @foreach (var user in appState.room.Users)
-            {
-                <li>@user.Username</li>
-            }
-        </ol>
+        <h6>Users in lobby</h6>
+            <ul id="currentUsers">
+                @foreach (var user in appState.Users)
+                {
+                    <li>@user</li>
+                }
+            </ul>        
     </div>
 }
 else
@@ -37,9 +38,9 @@ else
             .WithUrl(navigationManager.ToAbsoluteUri("/roomhub"))
             .Build();
             //Everytime a user joins, update the list with the current user status
-            hubConnection.On<string>("NewUser", (room) =>
+            hubConnection.On<string>("NewUser", (user) =>
             {
-                appState.room = room;
+                appState.Users.Add(user);
                 StateHasChanged();
             });
             //Start the connection and send your relevant information to the hub.

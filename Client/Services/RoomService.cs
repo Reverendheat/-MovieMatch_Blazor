@@ -1,4 +1,5 @@
 ﻿using MovieMatch_Blazor.Shared;
+using MovieMatch_Blazor.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,32 +18,32 @@ namespace MovieMatch_Blazor.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<ServiceResponse<Room>> CreateRoom(User user)
+        public async Task<ServiceResponse<AppState>> CreateRoom(IAppState state)
         {
             try
             {
-                var result = await _httpClient.PostAsJsonAsync("/api/room/create", user);
-                return await result.Content.ReadFromJsonAsync<ServiceResponse<Room>>();
+                var result = await _httpClient.PostAsJsonAsync("/api/room/create", state);
+                return await result.Content.ReadFromJsonAsync<ServiceResponse<AppState>>();
             } catch(Exception e)
             {
-                return new ServiceResponse<Room>
+                return new ServiceResponse<AppState>
                 {
                     Message = e.Message,
                     Success = false,
                 };
             }
-
         }
-        public async Task<ServiceResponse<Room>> JoinRoom(IAppState state)
+
+        public async Task<ServiceResponse<AppState>> JoinRoom(IAppState state)
         {
             try
             {
                 var result = await _httpClient.PostAsJsonAsync("/api/room/join", state);
-                return await result.Content.ReadFromJsonAsync<ServiceResponse<Room>>();
+                return await result.Content.ReadFromJsonAsync<ServiceResponse<AppState>>();
             }
             catch (Exception e)
             {
-                return new ServiceResponse<Room>
+                return new ServiceResponse<AppState>
                 {
                     Message = e.Message,
                     Success = false,

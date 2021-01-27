@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MovieMatch_Blazor.Client.Services;
+using MovieMatch_Blazor.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;

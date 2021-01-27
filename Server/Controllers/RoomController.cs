@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MovieMatch_Blazor.Client.Services;
+using MovieMatch_Blazor.Shared.Services;
 using MovieMatch_Blazor.Server.Data;
 using MovieMatch_Blazor.Shared;
 using System;
@@ -21,9 +21,9 @@ namespace MovieMatch_Blazor.Server.Controllers
             _roomRepo = roomRepo;
         }
         [HttpPost("create")]
-        public async Task<IActionResult> CreateRoom(User user)
+        public async Task<IActionResult> CreateRoom(AppState state)
         {
-            var response = await _roomRepo.CreateRoom(user);
+            var response = await _roomRepo.CreateRoom(state);
             return response.Success ? Ok(response) : BadRequest(response);
         }
         [HttpPost("join")]

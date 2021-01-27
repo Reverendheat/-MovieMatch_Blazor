@@ -1,4 +1,4 @@
-﻿using MovieMatch_Blazor.Client.Services;
+﻿using MovieMatch_Blazor.Shared.Services;
 using MovieMatch_Blazor.Shared;
 using System;
 using System.Collections.Generic;
@@ -9,8 +9,8 @@ namespace MovieMatch_Blazor.Server.Data
 {
     public interface IRoomRepository
     {
-        Task<ServiceResponse<Room>> CreateRoom(User user);
-        Task<ServiceResponse<Room>> JoinRoom(IAppState state);
-        Task<ServiceResponse<Room>> RegisterUser(IAppState state);
+        Task<ServiceResponse<IAppState>> CreateRoom(IAppState state);
+        Task<ServiceResponse<IAppState>> JoinRoom(IAppState state);
+/*        Task<ServiceResponse<IAppState>> RegisterUser(IAppState state);*/
     }
 }
