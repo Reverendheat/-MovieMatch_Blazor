@@ -12,6 +12,7 @@ namespace MovieMatch_Blazor.Shared.Services
         public string RoomCode { get; set; }
         public string UserCode { get; set; }
         public string Username { get; set; }
+        public string Text { get; set; }
         public bool roomIsValid { get; set; } = false;
     }
 }

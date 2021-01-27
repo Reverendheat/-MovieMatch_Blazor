@@ -53,16 +53,16 @@
     {
         appState.Username = newRoom.Username;
         var result = await roomService.CreateRoom(appState);
+        appState.roomIsValid = result.Success;
         if (result.Success)
         {
             //Update the state from the API
             appState.roomIsValid = result.Data.roomIsValid;
             appState.RoomCode = result.Data.RoomCode;
             navigationManager.NavigateTo($"/room/{appState.RoomCode}");
-        }
-        else
+        } else
         {
-            //Pop a modal up?
+            navigationManager.NavigateTo($"/room/{appState.RoomCode}");
         }
     }
     public async void HandleJoinRoom()
@@ -71,9 +71,18 @@
         appState.RoomCode = joinRoom.RoomCode;
         var result = await roomService.JoinRoom(appState);
         appState.roomIsValid = result.Success;
-        appState.Users = result.Data.Users;
-        appState.roomIsValid = true;
-        navigationManager.NavigateTo($"/room/{result.Data.RoomCode}");
+        appState.Text = result.Message ?? "Error processing your request";
+        
+        if (result.Success)
+        {
+            appState.Users = result.Data.Users;
+            navigationManager.NavigateTo($"/room/{result.Data.RoomCode}");
+        }
+        else
+        {
+            navigationManager.NavigateTo($"/room/{appState.RoomCode}");
+        }
+
     }
 
     protected async override Task OnInitializedAsync()
