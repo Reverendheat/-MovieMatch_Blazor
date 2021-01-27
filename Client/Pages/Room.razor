@@ -1,0 +1,55 @@
+﻿@page "/room/{RoomCode}"
+@inject MovieMatch_Blazor.Client.Services.IAppState appState
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.SignalR.Client 
+
+
+@if (appState.roomIsValid)
+{
+    <h3>Welcome!</h3>
+    <div>
+        <ol id="currentUsers">
+            @foreach (var user in appState.room.Users)
+            {
+                <li>@user.Username</li>
+            }
+        </ol>
+    </div>
+}
+else
+{
+    <h3>Looks like that room doesn't exist... or you didn't join from the <a href="/">homepage</a></h3>
+}
+
+
+
+@code {
+    [Parameter]
+    public string RoomCode { get; set; }
+
+    private HubConnection hubConnection;
+    protected override async Task OnInitializedAsync()
+    {
+        if (appState.roomIsValid)
+        {
+            hubConnection = new HubConnectionBuilder()
+            .WithUrl(navigationManager.ToAbsoluteUri("/roomhub"))
+            .Build();
+            //Everytime a user joins, update the list with the current user status
+            hubConnection.On<string>("NewUser", (room) =>
+            {
+                appState.room = room;
+                StateHasChanged();
+            });
+            //Start the connection and send your relevant information to the hub.
+            await hubConnection.StartAsync();
+            await hubConnection.SendAsync("register", appState);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}
