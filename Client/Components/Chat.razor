@@ -1,0 +1,59 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using MovieMatch_Blazor.Shared.FormModels
+@inject MovieMatch_Blazor.Shared.Services.IAppState appState
+
+<h3>Chat</h3>
+<div id="hubMessages" class="chat-box">
+    @foreach (var message in appState.Messages)
+    {
+        <p><strong>@message.Username:</strong> @message.Text</p>
+    }
+</div>
+<div class="form-group">
+    <form>
+        <label>
+            Message:
+            <input @bind="messageInput" size="50" />
+        </label>
+        <button type="submit" @onclick:preventDefault @onclick="Send" class="btn btn-secondary" disabled="@(!IsConnected)">Send</button>
+    </form>
+</div>
+
+<style>
+    .chat-box {
+        height: 200px;
+        overflow: auto;
+        display: flex;
+        border: solid;
+        border-width: 2px;
+        flex-direction: column-reverse;
+    }
+</style>
+
+
+@code {
+    private string messageInput { get; set; }
+    void Send()
+    {
+        if (!String.IsNullOrEmpty(messageInput))
+        {
+            appState.hubConnection.SendAsync("SendMessage", appState.Username, appState.RoomCode, messageInput);
+            messageInput = "";
+        }
+    }
+    //This feels gross
+    public void Refresh()
+    {
+        StateHasChanged();
+    }
+
+    void Enter(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            Send();
+        }
+    }
+    public bool IsConnected =>
+    appState.hubConnection.State == HubConnectionState.Connected;
+}

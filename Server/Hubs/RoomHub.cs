@@ -13,21 +13,21 @@ namespace MovieMatch_Blazor.Server.Hubs
         {
             _roomRepository = roomRepository;
         }
-        public async Task Register(AppState state)
+        public async Task Register(string roomCode, string username)
         {
             //Update the AppState with all of the users that currently exist
-            await Groups.AddToGroupAsync(Context.ConnectionId, state.RoomCode);
-            await Clients.Group(state.RoomCode).SendAsync("NewUser", state.Username);
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomCode);
+            await Clients.Group(roomCode).SendAsync("NewUser", username);
         }
 
-        public async Task SendMessage(AppState state, string message)
+        public async Task SendMessage(string username, string roomCode, string message)
         {
             var newMessage = new Message()
             {
-                Username = state.Username,
+                Username = username,
                 Text = message
             };
-            await Clients.Group(state.RoomCode).SendAsync("ReceiveMessage", newMessage);
+            await Clients.Group(roomCode).SendAsync("ReceiveMessage", newMessage);
         }
     }
 }

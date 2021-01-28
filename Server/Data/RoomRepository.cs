@@ -30,7 +30,8 @@ namespace MovieMatch_Blazor.Server.Data
                 await _context.Rooms.AddAsync(room);
                 await _context.SaveChangesAsync();
                 state.RoomCode = room.RoomCode;
-                state.roomIsValid = true;
+                state.RoomIsValid = true;
+                state.UserIsAdmin = true;
                 return new ServiceResponse<IAppState>
                 {
                     Data = state,
@@ -57,7 +58,7 @@ namespace MovieMatch_Blazor.Server.Data
                 if (room.Users.Any(u => u.UserCode == state.UserCode))
                 {
                     //Welcome back
-                    state.roomIsValid = true;
+                    state.RoomIsValid = true;
                     return new ServiceResponse<IAppState>
                     {
                         Data = state,
@@ -67,7 +68,7 @@ namespace MovieMatch_Blazor.Server.Data
                 }
                 else if (room.Users.Count == 5)
                 {
-                    state.roomIsValid = false;
+                    state.RoomIsValid = false;
                     //Room is full
                     return new ServiceResponse<IAppState>
                     {
@@ -84,7 +85,7 @@ namespace MovieMatch_Blazor.Server.Data
                     room.Users.Add(user);
                     _context.Update(room);
                     await _context.SaveChangesAsync();
-                    state.roomIsValid = true;
+                    state.RoomIsValid = true;
                     return new ServiceResponse<IAppState>
                     {
                         Data = state,

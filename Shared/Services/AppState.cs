@@ -1,4 +1,6 @@
-﻿using MovieMatch_Blazor.Shared;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using MovieMatch_Blazor.Shared;
+using MovieMatch_Blazor.Shared.FormModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,11 @@ namespace MovieMatch_Blazor.Shared.Services
         public string UserCode { get; set; }
         public string Username { get; set; }
         public string Text { get; set; }
-        public bool roomIsValid { get; set; } = false;
+        public bool RoomIsValid { get; set; } = false;
+        public bool UserIsAdmin { get; set; } = false;
+        public bool ShowStarted { get; set; } = false;
+        public bool Loading { get; set; } = false;
+        public HubConnection hubConnection { get; set; }
+        public List<Message> Messages { get; set; } = new List<Message>();
     }
 }

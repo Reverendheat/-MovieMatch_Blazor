@@ -1,45 +1,54 @@
 ﻿@page "/"
 @using MovieMatch_Blazor.Shared
 @using MovieMatch_Blazor.Shared.FormModels
+@using MovieMatch_Blazor.Client.Components
 @inject MovieMatch_Blazor.Client.Services.IRoomService roomService
 @inject MovieMatch_Blazor.Shared.Services.IAppState appState
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 
 
-<h1>Movie Matcher</h1>
-
-@switch (choice)
+@if (appState.Loading)
 {
-    case (0):
-        <button class="btn btn-primary" @onclick="() => HandleSelection(1)">Create a room</button>
-        <button class="btn btn-secondary" @onclick="() => HandleSelection(2)">Join a room</button>
-        break;
-    case (1):
-        <h3>Create a room</h3>
-        <EditForm Model="newRoom" OnValidSubmit="HandleNewRoom">
-            <DataAnnotationsValidator />
-            <label for="username">Username</label>
-            <InputText id="username" autocomplete="off" @bind-Value="newRoom.Username"></InputText>
-            <ValidationMessage For="() => newRoom.Username" />
-            <button class="btn btn-primary" type="submit">Create Room</button>
-            <button class="btn btn-secondary" @onclick="() => HandleSelection(0)">Back</button>
-        </EditForm>
-        break;
-    case (2):
-        <h3>Join a room</h3>
-        <EditForm Model="joinRoom" OnValidSubmit="HandleJoinRoom">
-            <DataAnnotationsValidator />
-            <label for="username">Username</label>
-            <InputText id="username" autocomplete="off" @bind-Value="joinRoom.Username"></InputText>
-            <ValidationMessage For="() => joinRoom.Username" />
-            <label for="roomCode">Room Code</label>
-            <InputText id="username" autocomplete="off" @bind-Value="joinRoom.RoomCode"></InputText>
-            <ValidationMessage For="() => joinRoom.RoomCode" />
-            <button class="btn btn-primary" type="submit">Join Room</button>
-            <button class="btn btn-secondary" @onclick="() => HandleSelection(0)">Back</button>
-        </EditForm>
-        break;
+    <Loading />
+}
+else
+{
+    <h1>Movie Matcher</h1>
+
+    @switch (choice)
+    {
+        case (0):
+            <button class="btn btn-primary" @onclick="() => HandleSelection(1)">Create a room</button>
+            <button class="btn btn-secondary" @onclick="() => HandleSelection(2)">Join a room</button>
+            break;
+        case (1):
+            <h3>Create a room</h3>
+            <EditForm Model="newRoom" OnValidSubmit="HandleNewRoom">
+                <DataAnnotationsValidator />
+                <label for="username">Username</label>
+                <InputText id="username" autocomplete="off" @bind-Value="newRoom.Username"></InputText>
+                <ValidationMessage For="() => newRoom.Username" />
+                <button class="btn btn-primary" type="submit">Create Room</button>
+                <button class="btn btn-secondary" @onclick="() => HandleSelection(0)">Back</button>
+            </EditForm>
+            break;
+        case (2):
+            <h3>Join a room</h3>
+            <EditForm Model="joinRoom" OnValidSubmit="HandleJoinRoom">
+                <DataAnnotationsValidator />
+                <label for="username">Username</label>
+                <InputText id="username" autocomplete="off" @bind-Value="joinRoom.Username"></InputText>
+                <ValidationMessage For="() => joinRoom.Username" />
+                <label for="roomCode">Room Code</label>
+                <InputText id="username" autocomplete="off" @bind-Value="joinRoom.RoomCode"></InputText>
+                <ValidationMessage For="() => joinRoom.RoomCode" />
+                <button class="btn btn-primary" type="submit">Join Room</button>
+                <button class="btn btn-secondary" @onclick="() => HandleSelection(0)">Back</button>
+            </EditForm>
+            break;
+    }
+
 }
 
 @code {
@@ -51,28 +60,32 @@
 
     public async void HandleNewRoom()
     {
+        appState.Loading = true;
         appState.Username = newRoom.Username;
         var result = await roomService.CreateRoom(appState);
-        appState.roomIsValid = result.Success;
+        appState.RoomIsValid = result.Success;
         if (result.Success)
         {
-            //Update the state from the API
-            appState.roomIsValid = result.Data.roomIsValid;
+            //This explicit assignment I don't like, but just applying result.Data to appState throws an error...
+            appState.RoomIsValid = result.Data.RoomIsValid;
+            appState.UserIsAdmin = result.Data.UserIsAdmin;
             appState.RoomCode = result.Data.RoomCode;
             navigationManager.NavigateTo($"/room/{appState.RoomCode}");
-        } else
+        }
+        else
         {
             navigationManager.NavigateTo($"/room/{appState.RoomCode}");
         }
+        appState.Loading = false;
     }
     public async void HandleJoinRoom()
     {
         appState.Username = joinRoom.Username;
         appState.RoomCode = joinRoom.RoomCode;
         var result = await roomService.JoinRoom(appState);
-        appState.roomIsValid = result.Success;
+        appState.RoomIsValid = result.Success;
         appState.Text = result.Message ?? "Error processing your request";
-        
+
         if (result.Success)
         {
             appState.Users = result.Data.Users;

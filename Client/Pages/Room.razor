@@ -1,16 +1,17 @@
 ﻿@page "/room/{RoomCode}"
-@using MovieMatch_Blazor.Shared.FormModels 
+@using MovieMatch_Blazor.Shared.FormModels
 @inject MovieMatch_Blazor.Shared.Services.IAppState appState
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager navigationManager
 @using Microsoft.AspNetCore.SignalR.Client
+@using MovieMatch_Blazor.Client.Components
 
 
-@if (appState.roomIsValid)
+@if (appState.RoomIsValid)
 {
     <h3>Lets get ready to rumble @appState.Username</h3>
     <div>
-        <h6>Users in lobby</h6>
+        <h6><strong>Users in lobby</strong></h6>
         <ul class="list-group" id="currentUsers">
             @foreach (var user in appState.Users)
             {
@@ -18,21 +19,13 @@
             }
         </ul>
     </div>
-    <div id="hubMessages" style="overflow:scroll; height:300px; border:solid">
-        @foreach (var message in Messages)
-        {
-            <p><strong>@message.Username:</strong> @message.Text</p>
-        }
-    </div>
-    <div class="form-group">
-        <label>
-            Message:
-            <input @bind="messageInput" size="50" />
-        </label>
-    </div>
-    <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+    <Chat @ref="chat" />
 
     <hr>
+    @if (appState.UserIsAdmin)
+    {
+        <button type="button" class="btn btn-danger" @onclick="StartShow">Start the show</button>
+    }
 }
 else
 {
@@ -42,36 +35,40 @@ else
 
 
 
+
 @code {
     [Parameter]
     public string RoomCode { get; set; }
     private string Text { get; set; }
-    private string messageInput { get; set; }
-    private List<Message> Messages { get; set; } = new List<Message>();
-
-    private HubConnection hubConnection;
+    private Chat chat;
+    //private HubConnection hubConnection;
     protected override async Task OnInitializedAsync()
     {
-        if (appState.roomIsValid)
+        if (appState.RoomIsValid)
         {
-            hubConnection = new HubConnectionBuilder()
-            .WithUrl(navigationManager.ToAbsoluteUri("/roomhub"))
-            .Build();
+            appState.hubConnection = new HubConnectionBuilder()
+                .WithUrl(navigationManager.ToAbsoluteUri("/roomhub"))
+                .Build();
             //Everytime a user joins, update the list with the current user status
-            hubConnection.On<string>("NewUser", (user) =>
+            appState.hubConnection.On<string>("NewUser", (user) =>
             {
                 appState.Users.Add(user);
                 StateHasChanged();
             });
-            hubConnection.On<Message>("ReceiveMessage", (message) =>
+            appState.hubConnection.On<Message>("ReceiveMessage", (message) =>
             {
-                Messages.Add(message);
+                appState.Messages.Insert(0, message);
+                chat.Refresh();
+            });
+            appState.hubConnection.On<string>("ShowStarted", (message) =>
+            {
+                appState.ShowStarted = true;
                 StateHasChanged();
             });
 
             //Start the connection and send your relevant information to the hub.
-            await hubConnection.StartAsync();
-            await hubConnection.SendAsync("register", appState);
+            await appState.hubConnection.StartAsync();
+            await appState.hubConnection.SendAsync("Register", appState.RoomCode, appState.Username);
         }
         else
         {
@@ -79,17 +76,26 @@ else
             StateHasChanged();
         }
     }
-    void Send() {
-        hubConnection.SendAsync("SendMessage", appState, messageInput);
-        messageInput = "";
+@*    void Send()
+    {
+        if (!String.IsNullOrEmpty(messageInput))
+        {
+            hubConnection.SendAsync("SendMessage", appState, messageInput);
+            messageInput = "";
+        }
+    }*@
+
+    void StartShow()
+    {
+        appState.hubConnection.SendAsync("StartShow", appState);
     }
 
 
     public bool IsConnected =>
-    hubConnection.State == HubConnectionState.Connected;
+    appState.hubConnection.State == HubConnectionState.Connected;
 
     public async ValueTask DisposeAsync()
     {
-        await hubConnection.DisposeAsync();
+        await appState.hubConnection.DisposeAsync();
     }
 }
